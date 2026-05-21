@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Gym Plan</title>
+<style>
+  :root {
+    --bg: #111;
+    --card: #1c1c1c;
+    --border: #2a2a2a;
+    --accent: #c8ff00;
+    --text: #f0f0f0;
+    --muted: #777;
+    --rest: #ff9500;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; font-size: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+  /* TABS */
+  .tabs { display: flex; background: #000; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 99; }
+  .tab { flex: 1; padding: 14px 4px; font-size: 13px; font-weight: 600; color: var(--muted); text-align: center; cursor: pointer; border-bottom: 2px solid transparent; -webkit-tap-highlight-color: transparent; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* PAGES */
+  .page { display: none; padding: 16px; }
+  .page.active { display: block; }
+
+  /* PAGE TITLE */
+  .page-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+  .page-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+
+  /* WARM UP BAR */
+  .warmup-bar { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .warmup-bar span:first-child { font-size: 14px; font-weight: 500; }
+  .warmup-bar span:last-child { font-size: 13px; color: var(--accent); font-weight: 700; }
+
+  /* EXERCISE CARD */
+  .ex-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+  .ex-head { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .ex-head:active { background: #222; }
+  .ex-name { font-size: 16px; font-weight: 600; }
+  .ex-sets { font-size: 13px; color: var(--accent); font-weight: 700; white-space: nowrap; margin-left: 10px; }
+  .ex-body { display: none; border-top: 1px solid var(--border); padding: 14px 16px; }
+  .ex-card.open .ex-body { display: block; }
+  .ex-card.open .ex-chevron { transform: rotate(180deg); }
+  .ex-chevron { color: var(--muted); font-size: 14px; transition: transform 0.2s; margin-left: 8px; flex-shrink: 0; }
+  .weight-tag { font-size: 11px; background: rgba(200,255,0,0.1); color: var(--accent); border: 1px solid rgba(200,255,0,0.25); border-radius: 5px; padding: 3px 7px; margin-bottom: 10px; display: inline-block; }
+
+  /* MACHINE / NO MACHINE TOGGLE */
+  .toggle { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+  .toggle-btn { flex: 1; padding: 8px; font-size: 12px; font-weight: 700; color: var(--muted); background: none; border: none; cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+  .toggle-btn.active { background: var(--accent); color: #000; }
+  .method { display: none; }
+  .method.active { display: block; }
+
+  /* STEPS */
+  .steps { list-style: none; margin-bottom: 10px; }
+  .steps li { font-size: 14px; color: #ccc; line-height: 1.5; padding: 5px 0 5px 22px; position: relative; border-bottom: 1px solid var(--border); }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before { content: attr(data-n); position: absolute; left: 0; color: var(--accent); font-weight: 700; font-size: 13px; }
+
+  /* REST & VIDEO */
+  .rest { font-size: 13px; color: var(--rest); font-weight: 600; margin-bottom: 10px; }
+  .video-link { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ff4444; font-weight: 600; text-decoration: none; padding: 8px 0; }
+
+  /* COOLDOWN BAR */
+  .cooldown-bar { background: var(--card); border: 1px solid var(--border); border-left: 3px solid #888; border-radius: 8px; padding: 12px 14px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+  .cooldown-bar span:first-child { font-size: 14px; font-weight: 500; color: var(--muted); }
+  .cooldown-bar span:last-child { font-size: 13px; color: var(--muted); font-weight: 700; }
+
+  /* POSTURE DAILY */
+  .posture-note { font-size: 13px; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; line-height: 1.6; }
+  .posture-note strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" onclick="show('a',this)">Day A</div>
+  <div class="tab" onclick="show('b',this)">Day B</div>
+  <div class="tab" onclick="show('c',this)">Day C</div>
+  <div class="tab" onclick="show('posture',this)">Posture</div>
+</div>
+
+<!-- ═══ DAY A ═══ -->
+<div id="a" class="page active">
+  <div class="page-title">Day A — Upper Body</div>
+  <div class="page-subtitle">~45 min · Focus: posture and back strength</div>
+
+  <div class="warmup-bar"><span>🚴 Cardio warm-up (any machine)</span><span>5 min easy</span></div>
+
+  <!-- ROW -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Seated Row</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 12</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 20–25 kg · Add 5 kg when 3×12 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Pick whichever is free: Chest-Supported Row → Seated Cable Row</p>
+        <ol class="steps">
+          <li data-n="1"><strong>Chest-supported row (best):</strong> Lie chest-down on the pad. Pull handles toward you, driving elbows back. No spinal load.</li>
+          <li data-n="2"><strong>Seated cable row:</strong> Sit upright, feet on platform. Pull handle to lower chest. Keep torso still — don't rock.</li>
+          <li data-n="3">Both: squeeze shoulder blades together at the end. Hold 1 sec. Return slowly.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=FU6YQawma2Q" target="_blank">▶ Watch: Chest-Supported Row Machine</a>
+        <a class="video-link" href="https://www.youtube.com/watch?v=7BkgqzC6WsM" target="_blank">▶ Watch: Seated Cable Row</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Right knee and hand on bench for support. Dumbbell in left hand.</li>
+          <li data-n="2">Pull dumbbell up toward hip, driving elbow back and up.</li>
+          <li data-n="3">Squeeze back at top. Lower slowly. 12 reps each side.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=sP_4vybjVJs" target="_blank">▶ Watch: Seated Cable Row (No Machine)</a>
+      </div>
+      <div class="rest">Rest: 60 sec</div>
+    </div>
+  </div>
+
+  <!-- FACE PULLS -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Face Pulls ⭐</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 15</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 5–8 kg · Keep it light — form over weight</span>
+      <div class="method active">
+        <ol class="steps">
+          <li data-n="1">Cable pulley at face height. Rope attachment. Light weight.</li>
+          <li data-n="2">Pull rope toward your face, elbows flared OUT and back.</li>
+          <li data-n="3">Hands end at ear level. Hold 1 sec. Torso stays upright.</li>
+          <li data-n="4">Return slowly. Repeat.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=0Po47vvj9g4" target="_blank">▶ Watch: Face Pulls Tutorial</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Sit at edge of bench, lean forward so chest is near knees.</li>
+          <li data-n="2">Hold very light dumbbell in each hand below you.</li>
+          <li data-n="3">Raise both arms out to sides until parallel to floor. Squeeze back.</li>
+          <li data-n="4">Lower slowly. 15 reps.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/9WpNWAM782Y" target="_blank">▶ Watch: Rear Delt Fly</a>
+      </div>
+      <div class="rest">Rest: 45 sec</div>
+    </div>
+  </div>
+
+  <!-- LAT PULLDOWN -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Lat Pulldown</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 12</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <span class="weight-tag">⚖️ Start: 25–30 kg · Add 5 kg when 3×12 feels easy</span>
+      <ol class="steps">
+        <li data-n="1">Sit, grip bar wider than shoulder-width, palms facing away.</li>
+        <li data-n="2">Lean back slightly. Pull bar down to upper chest.</li>
+        <li data-n="3">Drive elbows down and back. Squeeze back. Hold 1 sec.</li>
+        <li data-n="4">Return slowly until arms nearly straight. Repeat.</li>
+      </ol>
+      <div class="rest">Rest: 60 sec</div>
+      <a class="video-link" href="https://www.youtube.com/shorts/oMJmAHRZXBk" target="_blank">▶ Watch: Lat Pulldown Tutorial</a>
+    </div>
+  </div>
+
+  <!-- INCLINE PRESS -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Incline Chest Press</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 12</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 15–20 kg · Add 5 kg when 3×12 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Pick whichever is free: Incline Chest Press Machine → Flat Chest Press Machine (angle up)</p>
+        <ol class="steps">
+          <li data-n="1"><strong>Incline chest press machine:</strong> Adjust seat so handles are at upper chest. Back flat on pad, press forward until arms nearly extended.</li>
+          <li data-n="2"><strong>Flat chest press machine:</strong> If no incline machine, use flat press machine — still works chest and shoulders effectively.</li>
+          <li data-n="3">Both: elbows at ~45° to body. Return slowly — 3 seconds back. Don't lock elbows.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=7_scLkTCwTU" target="_blank">▶ Watch: Incline Chest Press Machine</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Set bench to 30–45° incline. Dumbbell in each hand at chest.</li>
+          <li data-n="2">Press up until nearly extended. Elbows at 45° to body.</li>
+          <li data-n="3">Lower slowly — 3 seconds down. Repeat.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=gl8H4QLXKTo" target="_blank">▶ Watch: Incline Dumbbell Press</a>
+      </div>
+      <div class="rest">Rest: 60 sec</div>
+    </div>
+  </div>
+
+  <!-- SHOULDER PRESS -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Shoulder Press</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 10</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 10–15 kg · Add 5 kg when 3×10 feels easy</span>
+      <div class="method active">
+        <ol class="steps">
+          <li data-n="1">Adjust seat so handles are at shoulder height.</li>
+          <li data-n="2">Press upward until arms nearly extended. Don't lock elbows.</li>
+          <li data-n="3">Lower slowly — 3 seconds down. Repeat.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/PM1hB_2xNBU" target="_blank">▶ Watch: Shoulder Press Machine</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Sit on bench with back support, dumbbell in each hand at shoulder height.</li>
+          <li data-n="2">Press both up until nearly extended. Lower slowly. Repeat.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=qEwKCR5JCog" target="_blank">▶ Watch: Dumbbell Shoulder Press</a>
+      </div>
+      <div class="rest">Rest: 60 sec</div>
+    </div>
+  </div>
+
+  <!-- PLANK -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Plank</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 30 sec</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <span class="weight-tag">⚖️ Bodyweight only · Increase hold time before adding weight</span>
+      <ol class="steps">
+        <li data-n="1">Forearms and toes, elbows under shoulders.</li>
+        <li data-n="2">Straight line from head to heels — no sagging hips.</li>
+        <li data-n="3">Brace core, lightly squeeze glutes. Hold 30 sec.</li>
+      </ol>
+      <div class="rest">Rest: 45 sec</div>
+      <a class="video-link" href="https://www.youtube.com/watch?v=A2b2EmIg0dA" target="_blank">▶ Watch: Plank Proper Form</a>
+    </div>
+  </div>
+
+  <div class="cooldown-bar"><span>🚴 Zone 2 cool-down (any machine)</span><span>10 min</span></div>
+</div><div id="b" class="page">
+  <div class="page-title">Day B — Lower Body</div>
+  <div class="page-subtitle">~45 min · Target: 120–135 bpm during cardio</div>
+
+  <div class="warmup-bar"><span>🚴 Cardio warm-up (any machine)</span><span>5 min easy</span></div>
+
+  <!-- GOBLET SQUAT -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div>
+        <div class="ex-name">Squat</div>
+      </div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 12</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 20–30 kg (leg press sled) or empty bar (Smith) · Add 10 kg when 3×12 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Pick whichever machine is free: Leg Press → Hack Squat → Smith Machine</p>
+        <ol class="steps">
+          <li data-n="1"><strong>Leg press (safest):</strong> Sit in machine, feet hip-width on platform. Press until legs nearly extended, return slowly.</li>
+          <li data-n="2"><strong>Hack squat machine:</strong> Back against pad, feet on platform. Squat down until thighs parallel, drive back up.</li>
+          <li data-n="3"><strong>Smith machine:</strong> Bar on shoulders, feet shoulder-width, toes slightly out. Squat until thighs parallel, drive up.</li>
+          <li data-n="4">All options: brace core, drive through heels, squeeze glutes at the top.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/nDh_BlnLCGc" target="_blank">▶ Watch: Leg Press Machine</a>
+        <a class="video-link" href="https://www.youtube.com/shorts/fC5urG2CCr8" target="_blank">▶ Watch: Smith Machine Squat</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Hold one dumbbell at chest height with both hands.</li>
+          <li data-n="2">Feet shoulder-width apart, toes slightly out.</li>
+          <li data-n="3">Sit down between your knees, chest tall, until thighs are parallel.</li>
+          <li data-n="4">Drive through heels back up. Squeeze glutes at the top.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/eLX_dyvooKQ" target="_blank">▶ Watch: Goblet Squat (last resort)</a>
+      </div>
+      <div class="rest">Rest: 60 sec</div>
+    </div>
+  </div>
+
+  <!-- LEG CURL / RDL -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Hamstring Curl</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 10</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 15–20 kg · Add 5 kg when 3×10 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Pick whichever machine is available.</p>
+        <ol class="steps">
+          <li data-n="1"><strong>Seated leg curl:</strong> Sit in machine, pad on top of lower legs. Curl legs down. Squeeze at bottom. Lower slowly — 3 sec back.</li>
+          <li data-n="2"><strong>Standing leg curl:</strong> Stand on one leg, curl the other up toward glutes. 10 reps each leg.</li>
+          <li data-n="3"><strong>Smith machine RDL:</strong> Bar at hip height. Hinge forward pushing hips back, lower bar along legs. Drive hips forward to return.</li>
+          <li data-n="4"><strong>Cable pull-through:</strong> Low pulley, rope attachment, face away. Hinge forward, then drive hips forward to return. Squeeze glutes at top.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/lcW1M2VKNYc" target="_blank">▶ Watch: Seated Leg Curl</a>
+        <a class="video-link" href="https://www.youtube.com/shorts/d6sg829PgNs" target="_blank">▶ Watch: Standing Leg Curl</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Stand, dumbbells in front of thighs, slight knee bend.</li>
+          <li data-n="2">Push hips back — not down — lowering dumbbells along your legs.</li>
+          <li data-n="3">Keep back flat. Stop when you feel a hamstring stretch.</li>
+          <li data-n="4">Drive hips forward to return. Squeeze glutes at top.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=aa57T45iFSE" target="_blank">▶ Watch: Romanian Deadlift (NASM)</a>
+      </div>
+      <div class="rest">Rest: 60 sec</div>
+    </div>
+  </div>
+
+  <!-- GLUTE BRIDGE -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Glute Bridge</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 15</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: bodyweight or 10–20 kg (machine) · Add 10 kg when 3×15 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Pick whichever machine is free: Hip Thrust Machine → Smith Machine Hip Thrust</p>
+        <ol class="steps">
+          <li data-n="1"><strong>Hip thrust machine:</strong> Upper back on pad, feet on platform. Drive hips up, squeeze glutes at top. Hold 1 sec.</li>
+          <li data-n="2"><strong>Smith machine hip thrust:</strong> Upper back on bench under bar. Bar rests on hips with padding. Same movement.</li>
+          <li data-n="3">Both: lower slowly — 3 seconds on the way down.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/6jVU_KaQOfw" target="_blank">▶ Watch: Hip Thrust Machine</a>
+        <a class="video-link" href="https://www.youtube.com/shorts/PqOnYf6Slkg" target="_blank">▶ Watch: Smith Machine Hip Thrust</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Lie on your back, knees bent, feet flat on the floor.</li>
+          <li data-n="2">Press lower back into the floor.</li>
+          <li data-n="3">Drive through heels, squeeze glutes, lift hips to form a straight line.</li>
+          <li data-n="4">Hold 1 sec. Lower slowly. Repeat.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/W9-9G6LAbU0" target="_blank">▶ Watch: Glute Bridge Tutorial</a>
+      </div>
+      <div class="rest">Rest: 45 sec</div>
+    </div>
+  </div>
+
+  <!-- HIP ABDUCTION / CLAMSHELL -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Hip Abduction</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 15</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 15–20 kg · Add 5 kg when 3×15 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Hip abduction machine — the one where you sit and push your knees apart.</p>
+        <ol class="steps">
+          <li data-n="1">Sit in the machine, pads on the outside of both knees.</li>
+          <li data-n="2">Back flat against pad, core braced.</li>
+          <li data-n="3">Push knees apart against the resistance as far as comfortable.</li>
+          <li data-n="4">Hold 1 sec at the widest point. Return slowly — 3 seconds back.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/XR6D7Hx1nbA" target="_blank">▶ Watch: Hip Abduction Machine</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Lie on your side, hips stacked, knees bent 45°, feet together.</li>
+          <li data-n="2">Keeping feet together, lift top knee up like a clamshell opening.</li>
+          <li data-n="3">Hold 1 sec at top. Lower slowly. 15 reps each side.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=EG5_gXcfozw" target="_blank">▶ Watch: Clamshell Proper Form</a>
+      </div>
+      <div class="rest">Rest: 45 sec</div>
+    </div>
+  </div>
+
+  <!-- DEAD BUG -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Dead Bug</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 8 each side</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <span class="weight-tag">⚖️ Bodyweight only · Never add weight to this exercise</span>
+      <ol class="steps">
+        <li data-n="1">Lie on back, knees bent 90°, feet off floor, arms pointing up.</li>
+        <li data-n="2">Press lower back firmly into the mat — keep it there throughout.</li>
+        <li data-n="3">Lower right arm behind you + extend left leg simultaneously.</li>
+        <li data-n="4">Stop before touching the floor. Return. Switch sides.</li>
+      </ol>
+      <div class="rest">Rest: 45 sec</div>
+      <a class="video-link" href="https://www.youtube.com/shorts/twDnCxAx9LM" target="_blank">▶ Watch: Dead Bug (NASM)</a>
+    </div>
+  </div>
+
+  <div class="cooldown-bar"><span>🚴 Zone 2 cool-down (any machine)</span><span>10 min</span></div>
+</div><div id="c" class="page">
+  <div class="page-title">Day C — Full Body</div>
+  <div class="page-subtitle">~45 min · Strength + mobility</div>
+
+  <div class="warmup-bar"><span>🚴 Cardio warm-up (any machine)</span><span>5 min easy</span></div>
+
+  <!-- LEG PRESS / STEP-UPS -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Leg Press</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 10</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 30–40 kg · Add 10 kg when 3×10 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Pick whichever is free: Leg Press → Hack Squat → Smith Machine</p>
+        <ol class="steps">
+          <li data-n="1"><strong>Leg press (safest):</strong> Feet hip-width on platform. Press until legs nearly extended — don't lock knees. Return slowly.</li>
+          <li data-n="2"><strong>Hack squat machine:</strong> Back on pad, feet on platform. Squat down until thighs parallel, drive back up.</li>
+          <li data-n="3"><strong>Smith machine:</strong> Bar on shoulders, squat until thighs parallel, drive through heels back up.</li>
+          <li data-n="4">All options: 3 seconds on the return. Don't lock knees at the top.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/nDh_BlnLCGc" target="_blank">▶ Watch: Leg Press Machine</a>
+        <a class="video-link" href="https://www.youtube.com/shorts/fC5urG2CCr8" target="_blank">▶ Watch: Smith Machine Squat</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Stand in front of a bench or box (knee height).</li>
+          <li data-n="2">Step right foot fully on bench. Drive through heel to step up.</li>
+          <li data-n="3">Step back down. 10 reps each leg.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=aKj-6hgiViA" target="_blank">▶ Watch: Step-ups Tutorial</a>
+      </div>
+      <div class="rest">Rest: 60 sec</div>
+    </div>
+  </div>
+
+  <!-- SEATED LEG CURL / SINGLE LEG DL -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Single-leg Curl</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 8 each</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <div class="toggle">
+        <button class="toggle-btn active" onclick="switchMethod(this)">🏋️ Machine</button>
+        <button class="toggle-btn" onclick="switchMethod(this)">🔄 No Machine</button>
+      </div>
+      <span class="weight-tag">⚖️ Start: 10–15 kg each leg · Add 5 kg when 3×8 feels easy</span>
+      <div class="method active">
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Pick whichever machine is available.</p>
+        <ol class="steps">
+          <li data-n="1"><strong>Seated leg curl:</strong> Sit in machine, pad on top of lower legs. Curl legs down. Squeeze at bottom. Lower slowly — 3 sec back.</li>
+          <li data-n="2"><strong>Standing leg curl:</strong> Stand on one leg, curl the other up toward glutes. 8 reps each leg.</li>
+          <li data-n="3"><strong>Smith machine RDL:</strong> Bar at hip height. Hinge forward pushing hips back, lower bar along legs. Drive hips forward to return.</li>
+          <li data-n="4"><strong>Cable pull-through:</strong> Low pulley, rope, face away. Hinge forward then drive hips forward to return. Squeeze glutes at top.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/shorts/lcW1M2VKNYc" target="_blank">▶ Watch: Seated Leg Curl</a>
+        <a class="video-link" href="https://www.youtube.com/shorts/d6sg829PgNs" target="_blank">▶ Watch: Standing Leg Curl</a>
+      </div>
+      <div class="method">
+        <ol class="steps">
+          <li data-n="1">Stand on right leg, slight knee bend. Use wall for balance.</li>
+          <li data-n="2">Hinge forward at hip, left leg extending behind you. Back flat.</li>
+          <li data-n="3">Lower until torso is parallel to floor. Drive through heel to return.</li>
+          <li data-n="4">8 reps then switch legs.</li>
+        </ol>
+        <a class="video-link" href="https://www.youtube.com/watch?v=ooGNupLrZJw" target="_blank">▶ Watch: Single-leg Deadlift Beginner</a>
+      </div>
+      <div class="rest">Rest: 60 sec</div>
+    </div>
+  </div>
+
+  <!-- SEATED ROW -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Seated Row</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 12</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Sit at cable row machine, back straight, arms extended.</li>
+        <li data-n="2">Pull handle to lower chest, elbows driving back.</li>
+        <li data-n="3">Squeeze shoulder blades together. Hold 1 sec. Return slowly.</li>
+      </ol>
+      <div class="rest">Rest: 60 sec</div>
+      <a class="video-link" href="https://www.youtube.com/watch?v=xQNrFHEMhI4" target="_blank">▶ Watch: Seated Cable Row Form</a>
+    </div>
+  </div>
+
+  <!-- HIP FLEXOR STRETCH -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Hip Flexor Stretch</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 45 sec each</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Kneel on right knee, left foot forward.</li>
+        <li data-n="2">Keep torso upright and push hips gently forward.</li>
+        <li data-n="3">Feel stretch in front of right hip. Hold 45 sec. Switch sides.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/watch?v=Q4Ko275cluo" target="_blank">▶ Watch: Hip Flexor Stretch</a>
+    </div>
+  </div>
+
+  <!-- CHILD'S POSE TO COBRA -->
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Child's Pose → Cobra</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 8</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Child's pose: hips to heels, arms extended forward. Hold 3 breaths.</li>
+        <li data-n="2">Come back to hands and knees.</li>
+        <li data-n="3">Cobra: lower hips to floor, press chest up gently. Hold 3 breaths.</li>
+        <li data-n="4">Return to hands and knees. That's one cycle.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/shorts/SCeqMuhdbUc" target="_blank">▶ Watch: Child's Pose to Cobra</a>
+    </div>
+  </div>
+
+  <div class="cooldown-bar"><span>🚴 Zone 2 cool-down (any machine)</span><span>10 min</span></div>
+</div>
+
+<!-- ═══ POSTURE ═══ -->
+<div id="posture" class="page">
+  <div class="page-title">Daily Posture</div>
+  <div class="posture-note">Do this <strong>every day</strong> — even rest days. Morning or before bed. ~10 min.<br><br><strong>Daily cue:</strong> glutes lightly squeezed · ribs down · chin gently tucked back</div>
+
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Hip Flexor Stretch</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 45 sec</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Kneel on right knee, left foot forward. Torso upright.</li>
+        <li data-n="2">Push hips gently forward. Feel stretch in front of right hip.</li>
+        <li data-n="3">Hold 45 sec. Switch sides.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/watch?v=Q4Ko275cluo" target="_blank">▶ Watch</a>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Glute Bridge Hold</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 30 sec</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Lie on back, knees bent, feet flat on floor.</li>
+        <li data-n="2">Drive through heels, squeeze glutes, lift hips to straight line.</li>
+        <li data-n="3">Hold 30 sec — focus on squeezing glutes. Lower slowly.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/shorts/W9-9G6LAbU0" target="_blank">▶ Watch</a>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Cat-Cow</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 10 slow</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Hands and knees, wrists under shoulders.</li>
+        <li data-n="2">Inhale: belly drops, tailbone and gaze up (Cow).</li>
+        <li data-n="3">Exhale: back rounds, chin and tailbone tuck (Cat).</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/watch?v=xyNwxiuERXc" target="_blank">▶ Watch</a>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Thoracic Rotation</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 10 each side</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Sit cross-legged or in a chair, hands on shoulders.</li>
+        <li data-n="2">Hips stay forward. Rotate upper body to the right as far as comfortable.</li>
+        <li data-n="3">Return to centre. Rotate left. Slow and controlled.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/watch?v=b7OpU0EvQVg" target="_blank">▶ Watch</a>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Wall Angels</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 12</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Back against wall, feet ~5cm away. Press lower back, upper back, and head to wall.</li>
+        <li data-n="2">Raise arms to goalpost shape, elbows and wrists touching wall.</li>
+        <li data-n="3">Slide arms up above head keeping contact. Slide back down.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/watch?v=ywYi4rBhRBQ" target="_blank">▶ Watch</a>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Chin Tucks</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">3 × 10 (5 sec hold)</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Sit or stand tall.</li>
+        <li data-n="2">Slide head straight back — making a double chin. Not down.</li>
+        <li data-n="3">Hold 5 sec. Release. Repeat 10 times.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/shorts/aE4ke3sFQbs" target="_blank">▶ Watch</a>
+    </div>
+  </div>
+
+  <div class="ex-card">
+    <div class="ex-head" onclick="toggle(this)">
+      <div><div class="ex-name">Dead Bug</div></div>
+      <div style="display:flex;align-items:center">
+        <span class="ex-sets">2 × 8 each side</span>
+        <span class="ex-chevron">▾</span>
+      </div>
+    </div>
+    <div class="ex-body">
+      <ol class="steps">
+        <li data-n="1">Lie on back, knees bent 90°, feet off floor, arms pointing up.</li>
+        <li data-n="2">Press lower back into mat throughout.</li>
+        <li data-n="3">Lower right arm + extend left leg simultaneously. Stop before floor.</li>
+        <li data-n="4">Return. Switch sides. Slow and controlled.</li>
+      </ol>
+      <a class="video-link" href="https://www.youtube.com/shorts/twDnCxAx9LM" target="_blank">▶ Watch</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function show(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+  function toggle(head) {
+    head.closest('.ex-card').classList.toggle('open');
+  }
+  function switchMethod(btn) {
+    const toggle = btn.parentElement;
+    const card = toggle.nextElementSibling;
+    const btns = toggle.querySelectorAll('.toggle-btn');
+    const methods = toggle.parentElement.querySelectorAll('.method');
+    btns.forEach(b => b.classList.remove('active'));
+    methods.forEach(m => m.classList.remove('active'));
+    btn.classList.add('active');
+    methods[Array.from(btns).indexOf(btn)].classList.add('active');
+  }
+</script>
+</body>
+</html>
